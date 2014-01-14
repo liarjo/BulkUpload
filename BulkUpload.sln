@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UploadDirContent", "UploadDirContent\UploadDirContent.csproj", "{D5FBCD20-52D1-438E-B9C3-2AB920B43D62}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureBlobHelper", "AzureBlobHelper\AzureBlobHelper.csproj", "{98B45279-55A1-4649-BE55-38BC6830168A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D5FBCD20-52D1-438E-B9C3-2AB920B43D62}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5FBCD20-52D1-438E-B9C3-2AB920B43D62}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5FBCD20-52D1-438E-B9C3-2AB920B43D62}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5FBCD20-52D1-438E-B9C3-2AB920B43D62}.Release|Any CPU.Build.0 = Release|Any CPU
+		{98B45279-55A1-4649-BE55-38BC6830168A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{98B45279-55A1-4649-BE55-38BC6830168A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{98B45279-55A1-4649-BE55-38BC6830168A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{98B45279-55A1-4649-BE55-38BC6830168A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
