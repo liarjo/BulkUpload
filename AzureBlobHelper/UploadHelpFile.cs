@@ -9,7 +9,7 @@ using System.Globalization;
 using Microsoft.WindowsAzure.Storage.Blob;
 using System.Collections;
 
-namespace AzureBlobHelper
+namespace TED.Sample.AzureBlobHelper
 {
     public class UploadHelpFile
     {
@@ -59,6 +59,16 @@ namespace AzureBlobHelper
             storageAccount = CloudStorageAccount.Parse(StorageConn);
             blobclient = storageAccount.CreateCloudBlobClient();
             myinfo = new UploadFileInfo(0, 0);
+            var reader = new System.Configuration.AppSettingsReader();
+            try
+            {
+                MaxBlockSize = (int)reader.GetValue("MaxBlockSize", typeof(int));
+            }
+            catch (Exception)
+            {
+
+                System.Diagnostics.Trace.WriteLine("Default MaxBlockSize " + MaxBlockSize);
+            }
         }
         private List<IAsyncResult> WaitPutBlock(List<IAsyncResult> workList, int TargetThreads)
         {
@@ -81,19 +91,24 @@ namespace AzureBlobHelper
                                 intProgressAcc += 1;
                                 myinfo.ProgressBlock = intProgressAcc;
                             }
-
                             this.OnProgressCall(myinfo);
+
+                        }
+                        catch (StorageException Xblob)
+                        {
+                            System.Diagnostics.Trace.WriteLine("WaitPutBlock StorageException: " + Xblob.Message);
+                            System.Diagnostics.Trace.WriteLine("Retraying : " + blockdata.InfoIde + "of " + myblob.Name);
+                            workList.Add(myblob.BeginPutBlock(blockdata.InfoIde, blockdata.Info, null, null, blockdata));
+                      
                         }
                         catch (Exception X)
                         {
-                            System.Diagnostics.Trace.WriteLine("WaitPutBlock Error: " + X.Message);
-                            System.Diagnostics.Trace.WriteLine("Retraying : " + blockdata.InfoIde + "of " + myblob.Name);
-                            workList.Add(myblob.BeginPutBlock(blockdata.InfoIde, blockdata.Info, null, null, blockdata));
+                            System.Diagnostics.Trace.WriteLine("WaitPutBlock Exception: " + X.Message);
                         }
                         index--;
                     }
                 }
-                System.Threading.Thread.Sleep(1000);
+                System.Threading.Thread.Sleep(5000);
             } while (workList.Count > TargetThreads);
             return workList;
         }
@@ -115,7 +130,7 @@ namespace AzureBlobHelper
         {
             if (isactive)
             {
-                System.Diagnostics.Trace.WriteLine("ParallelUploadBlob is already running ");
+                System.Diagnostics.Trace.WriteLine("ParallelUploadBlob is already running","Information");
             }
             else
             {
@@ -123,10 +138,9 @@ namespace AzureBlobHelper
                 FileInfo fi = new FileInfo(File2Upload);
 
                 this.intTotalBlock = Convert.ToInt32(Math.Ceiling((fi.Length) / Convert.ToDouble(MaxBlockSize)));
-
+                blobclient.ParallelOperationThreadCount = ThreadMax;
                 CloudBlobContainer container = blobclient.GetContainerReference(BlobContainer);
                 container.CreateIfNotExists();
-                //CloudBlockBlob blob = container.GetBlockBlobReference(myinfo.BlobName);
                 myblob = container.GetBlockBlobReference(myinfo.BlobName);
 
                 HashSet<string> blocklist = new HashSet<string>();
@@ -172,10 +186,8 @@ namespace AzureBlobHelper
                             }
                             //Start Block upload
                             MemoryStream BlockContent = new MemoryStream(chunk, false);
-
                             IAsyncResult asyncresult = myblob.BeginPutBlock(
                                idBlock, BlockContent, null, null, new UploadState { InfoIde=idBlock,Info= BlockContent });
-
                             asyncResultsPutBlock.Add(asyncresult);
                         }
                         else
@@ -188,13 +200,12 @@ namespace AzureBlobHelper
                         if (asyncResultsPutBlock.Count > ThreadMax)
                         {
                             //wait
-                            System.Diagnostics.Trace.WriteLine("threadMax: waiting, current " + asyncResultsPutBlock.Count + " file: " + myblob.Name);
+                            System.Diagnostics.Trace.WriteLine("threadMax: waiting, current " + asyncResultsPutBlock.Count + " file: " + myblob.Name,"Information");
                             asyncResultsPutBlock = WaitPutBlock(asyncResultsPutBlock, ThreadMax);
-
                         }
                         blockId++;
                     }
-                    System.Diagnostics.Trace.WriteLine("Total waiting");
+                    System.Diagnostics.Trace.WriteLine("Total waiting","Information");
                     if (asyncResultsPutBlock.Count > 0)
                     {
                         asyncResultsPutBlock = WaitPutBlock(asyncResultsPutBlock, 0);
@@ -207,7 +218,7 @@ namespace AzureBlobHelper
                     }
                     catch (Exception X)
                     {
-                        System.Diagnostics.Trace.WriteLine("ParallelUploadBlob Error: " + X.Message);
+                        System.Diagnostics.Trace.WriteLine("ParallelUploadBlob Error: " + X.Message,"Error");
                         myinfo.ErrorMessage = X.Message;
 
                     }
@@ -215,5 +226,7 @@ namespace AzureBlobHelper
             }
 
         }
+       
+
     }
 }

@@ -5,12 +5,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Configuration;
 
-using AzureBlobHelper;
+using TED.Sample.AzureBlobHelper;
 
 namespace UploadDirContent
 {
     class Program
     {
+        static object waitConsole = new object();
         static UploadHelpDir myHelp = new UploadHelpDir();
         static string strconn = "DefaultEndpointsProtocol=https;AccountName={0};AccountKey={1}";
         static DateTime tCero;
@@ -21,8 +22,13 @@ namespace UploadDirContent
             myHelp.onFinishAll += myHelp_onFinishAll;
             myHelp.onDirProgress += myHelp_onDirProgress;
 
-            Console.WriteLine("Enter Path:");
-            string path=Console.ReadLine();
+            string path = ConfigurationManager.AppSettings["OriginPath"];
+            if (path == null)
+            {
+                Console.WriteLine("Enter Path:");
+                path = Console.ReadLine();
+            }
+            
             Console.WriteLine("Enter Container");
             string container=Console.ReadLine();
 
@@ -41,44 +47,49 @@ namespace UploadDirContent
 
         static void myHelp_onDirProgress(object sender, UploadDirInfo e)
         {
-            Console.WriteLine("Files are " + e.TotalFiles);
-            int FilesReady=0;
-            foreach (UploadFileInfo fileUpdate in e.UploadFilesInfo.Values)
+            lock (waitConsole)
             {
-                if (fileUpdate.IsComplete)
+                Console.Clear();
+                foreach (UploadFileInfo fileUpdate in e.UploadFilesInfo.Values)
                 {
-                    FilesReady++;
+                    Console.WriteLine("File {0}", fileUpdate.BlobName);
+                    Console.WriteLine("Duration {0} ", DateTime.Now.Subtract(fileUpdate.StartTime).ToString());
+                    Console.WriteLine(fileUpdate.ProgressBlock + " of " + fileUpdate.TotalBlock + " progress " + fileUpdate.Progress.ToString("P"));
+                    Console.WriteLine("Speed {0} kbps", (fileUpdate.Speed * 1000).ToString("F"));
+                    Console.WriteLine("");
                 }
             }
-            Console.WriteLine("Files ready are " + FilesReady);
-            Console.WriteLine("");
         }
 
         static void myHelp_onFinishAll(object sender, object e)
         {
-            Console.WriteLine("Finish all Files");
-            Console.WriteLine("StartTime: " + tCero.ToShortTimeString());
-            Console.WriteLine("Finish Time: " + DateTime.Now.ToShortTimeString());
-            Console.ReadLine();
-
+            lock (waitConsole)
+            {
+                Console.WriteLine("Finish all Files");
+                Console.WriteLine("StartTime: " + tCero.ToShortTimeString());
+                Console.WriteLine("Finish Time: " + DateTime.Now.ToShortTimeString());
+                Console.ReadLine();
+            }
         }
 
         static void myHelp_onFinishFile(object sender, UploadFileInfo e)
         {
-            
-            Console.WriteLine("File {0} finish", e.BlobName);
-            myHelp_onProgress(null, e);
+            lock (waitConsole)
+            {
+                Console.WriteLine("File {0} finish", e.BlobName);
+                myHelp_onProgress(null, e);
+            }
         }
 
         
 
         static void myHelp_onProgress(object sender, UploadFileInfo e)
         {
-            Console.WriteLine("File {0}", e.BlobName);
-            Console.WriteLine("Duration {0} ", DateTime.Now.Subtract(e.StartTime).ToString());
-            Console.WriteLine(e.ProgressBlock + " of " + e.TotalBlock + " progress " + e.Progress.ToString("P"));
-            Console.WriteLine("Speed {0} kbps", (e.Speed * 1000).ToString("F"));
-            Console.WriteLine("");
+            //Console.WriteLine("File {0}", e.BlobName);
+            //Console.WriteLine("Duration {0} ", DateTime.Now.Subtract(e.StartTime).ToString());
+            //Console.WriteLine(e.ProgressBlock + " of " + e.TotalBlock + " progress " + e.Progress.ToString("P"));
+            //Console.WriteLine("Speed {0} kbps", (e.Speed * 1000).ToString("F"));
+            //Console.WriteLine("");
         }
     }
 }

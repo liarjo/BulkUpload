@@ -4,7 +4,7 @@ using System.IO;
 using System.Threading;
 
 
-namespace AzureBlobHelper
+namespace TED.Sample.AzureBlobHelper
 {
     public class UploadHelpDir
     {
@@ -20,11 +20,12 @@ namespace AzureBlobHelper
         {
             if (myInfo.UploadFilesInfo.Contains(e.BlobName))
             {
-                myInfo.UploadFilesInfo.Add(e.BlobName, e);
+                
+                myInfo.UploadFilesInfo[e.BlobName] = e;
             }
             else
             {
-                myInfo.UploadFilesInfo[e.BlobName] = e;
+                myInfo.UploadFilesInfo.Add(e.BlobName, e);
             }
             if (onDirProgress != null)
             {
@@ -49,7 +50,7 @@ namespace AzureBlobHelper
             UploadHelpFile worker = (UploadHelpFile)sender;
             if (worker.IsComplete)
             {
-                System.Diagnostics.Trace.WriteLine("File: {0} Finish", worker.File2Upload);
+                System.Diagnostics.Trace.WriteLine("File: " + worker.File2Upload + " Finish", "Information");
                 workers[worker.File2Upload] = null;
                 workers.Remove(worker.File2Upload);
                 ParallelAdvance();
@@ -110,6 +111,7 @@ namespace AzureBlobHelper
                     if (!(workers[fileName] as Thread).IsAlive)
                     {
                         //start
+                        System.Diagnostics.Trace.WriteLine("Start File : " + fileName,"Information");
                         (workers[fileName] as Thread).Start();
                         currentWorkers += 1;
                     }
@@ -134,9 +136,8 @@ namespace AzureBlobHelper
                 worker.onError += worker_onError;
                 workers.Add(worker.File2Upload, new Thread((worker.ParallelUploadBlob)));
             }
+            System.Diagnostics.Trace.WriteLine("all file ready to start upload", "Information");
             ParallelAdvance();
-            System.Diagnostics.Trace.WriteLine("all file ready to start upload");
-
         }
     }
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace AzureBlobHelper
+namespace TED.Sample.AzureBlobHelper
 {
     public class UploadFileInfo
     {

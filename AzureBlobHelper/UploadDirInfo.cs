@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections;
 
-namespace AzureBlobHelper
+namespace TED.Sample.AzureBlobHelper
 {
     public class UploadDirInfo
     {
